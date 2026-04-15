@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Generador de parejas de pádel (4 jugadores)</title>
+    <title>Generador de parejas de pádel</title>
     <style>
       :root {
         color-scheme: light dark;
@@ -46,9 +46,9 @@
       input {
         width: 100%;
         box-sizing: border-box;
-        padding: 10px 12px;
+        max-width: calc(50% - 48px);
         border-radius: 10px;
-        border: 1px solid rgba(127, 127, 127, 0.5);
+        transform: translateY(-50%);
         background: transparent;
         color: inherit;
       }
@@ -57,6 +57,17 @@
         gap: 12px;
         flex-wrap: wrap;
         margin-top: 12px;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .card-header .result {
+        margin: 0;
       }
       button {
         padding: 10px 12px;
@@ -182,9 +193,9 @@
         border: 1px solid rgba(255, 255, 255, 0.55);
         background: rgba(255, 255, 255, 0.12);
         backdrop-filter: blur(4px);
-        max-width: 44%;
+        max-width: min(320px, calc(50% - 72px));
         box-sizing: border-box;
-        transform: translate(-50%, -50%);
+        transform: translateY(-50%);
       }
       @media (prefers-color-scheme: dark) {
         .player {
@@ -229,20 +240,41 @@
 
       /* Positions (Team 1 = left, Team 2 = right) */
       .pos-left-top {
-        left: calc(10% + 120px);
+        left: clamp(16px, 5vw, 64px);
         top: 25%;
       }
       .pos-left-bottom {
-        left: calc(10% + 120px);
+        left: clamp(16px, 5vw, 64px);
         top: 75%;
       }
       .pos-right-top {
-        left: calc(90% - 120px);
+        right: clamp(16px, 5vw, 64px);
+        left: auto;
         top: 25%;
       }
       .pos-right-bottom {
-        left: calc(90% - 120px);
+        right: clamp(16px, 5vw, 64px);
+        left: auto;
         top: 75%;
+      }
+
+      @media (max-width: 420px) {
+        .player {
+          padding: 6px 8px;
+          gap: 6px;
+          max-width: calc(50% - 56px);
+        }
+        .player .name {
+          font-size: 12px;
+        }
+        .player .side {
+          font-size: 10px;
+        }
+        .player .avatar-img {
+          width: 22px;
+          height: 22px;
+        }
+        /* keep clamp() offsets */
       }
       .error {
         color: #b00020;
@@ -257,7 +289,7 @@
 
   <body>
     <div class="container">
-      <h1>Generador de parejas de pádel (4 jugadores)</h1>
+      <h1>Generador de parejas de pádel</h1>
       <p>
         Genera el próximo partido al azar, pero <strong>nunca repite exactamente el mismo partido dos veces seguidas</strong> y
         además asigna <strong>Drive/Revés</strong> intentando que <strong>ningún jugador repita lado en partidos consecutivos</strong>.
@@ -285,7 +317,6 @@
 
         <div class="row">
           <button class="primary" id="generate">Generar parejas</button>
-          <button id="download">Descargar cancha</button>
           <button id="swap">Intercambiar 2↔3</button>
           <button id="reset">Reset (olvidar último)</button>
         </div>
@@ -303,7 +334,10 @@
       </div>
 
       <div class="card">
-        <div class="result"><strong>Cancha</strong></div>
+        <div class="card-header">
+          <div class="result"><strong>Cancha</strong></div>
+          <button id="download">Descargar</button>
+        </div>
         <div class="muted">Izquierda: Revés arriba / Drive abajo · Derecha: Drive arriba / Revés abajo</div>
         <div class="court-wrap">
           <div class="court" role="img" aria-label="Cancha de pádel con los jugadores ubicados">
