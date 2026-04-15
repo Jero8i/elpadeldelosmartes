@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Generador de parejas de pádel (4 jugadores)</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        line-height: 1.4;
+      }
+      .container {
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0 0 16px;
+      }
+      p {
+        margin: 8px 0;
+        opacity: 0.9;
+      }
+      .card {
+        border: 1px solid rgba(127, 127, 127, 0.35);
+        border-radius: 12px;
+        padding: 16px;
+        margin: 16px 0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        opacity: 0.8;
+        margin-bottom: 6px;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(127, 127, 127, 0.5);
+        background: transparent;
+        color: inherit;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      button {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(127, 127, 127, 0.5);
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+      }
+      button.primary {
+        font-weight: 600;
+      }
+      .result {
+        font-size: 16px;
+      }
+      .teams {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .team {
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(127, 127, 127, 0.35);
+      }
+      .muted {
+        font-size: 12px;
+        opacity: 0.75;
+        margin-top: 8px;
+      }
+
+      .court-wrap {
+        margin-top: 12px;
+      }
+
+      .court {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 20 / 10;
+        border-radius: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.75);
+        overflow: hidden;
+        background: #1f5fbf;
+      }
+
+      /* Back walls */
+      .court::before,
+      .court::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.18);
+      }
+      .court::before {
+        top: 0;
+      }
+      .court::after {
+        bottom: 0;
+      }
+
+      /* Lines */
+      .court-lines {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .line {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.85);
+      }
+      /* Net */
+      .line.net {
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        left: 50%;
+        transform: translateX(-1px);
+        background: rgba(255, 255, 255, 0.95);
+      }
+
+      /* Service lines (horizontal) */
+      .line.service.top {
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        left: 15%;
+        transform: translateX(-1px);
+      }
+      .line.service.bottom {
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        left: 85%;
+        transform: translateX(-1px);
+      }
+
+      /* Center service line in each half (horizontal, from service line to net) */
+      .line.center-service.left {
+        height: 2px;
+        top: 50%;
+        transform: translateY(-1px);
+        left: 15%;
+        width: calc(50% - 15%);
+      }
+      .line.center-service.right {
+        height: 2px;
+        top: 50%;
+        transform: translateY(-1px);
+        left: 50%;
+        width: calc(85% - 50%);
+      }
+
+      .player {
+        position: absolute;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(4px);
+        max-width: 44%;
+        box-sizing: border-box;
+        transform: translate(-50%, -50%);
+      }
+      @media (prefers-color-scheme: dark) {
+        .player {
+          background: rgba(255, 255, 255, 0.06);
+        }
+      }
+      .player .name {
+        font-weight: 650;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .player .side {
+        font-size: 11px;
+        opacity: 0.75;
+        white-space: nowrap;
+      }
+
+      .avatar-img {
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        display: inline-block;
+        flex: 0 0 auto;
+        object-fit: cover;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      .teamline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .teamline .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* Positions (Team 1 = left, Team 2 = right) */
+      .pos-left-top {
+        left: calc(10% + 120px);
+        top: 25%;
+      }
+      .pos-left-bottom {
+        left: calc(10% + 120px);
+        top: 75%;
+      }
+      .pos-right-top {
+        left: calc(90% - 120px);
+        top: 25%;
+      }
+      .pos-right-bottom {
+        left: calc(90% - 120px);
+        top: 75%;
+      }
+      .error {
+        color: #b00020;
+      }
+      @media (prefers-color-scheme: dark) {
+        .error {
+          color: #ff6b6b;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Generador de parejas de pádel (4 jugadores)</h1>
+      <p>
+        Genera el próximo partido al azar, pero <strong>nunca repite exactamente el mismo partido dos veces seguidas</strong> y
+        además asigna <strong>Drive/Revés</strong> intentando que <strong>ningún jugador repita lado en partidos consecutivos</strong>.
+      </p>
+
+      <div class="card">
+        <div class="grid">
+          <div>
+            <label for="p1">Jugador 1</label>
+            <input id="p1" autocomplete="off" />
+          </div>
+          <div>
+            <label for="p2">Jugador 2</label>
+            <input id="p2" autocomplete="off" />
+          </div>
+          <div>
+            <label for="p3">Jugador 3</label>
+            <input id="p3" autocomplete="off" />
+          </div>
+          <div>
+            <label for="p4">Jugador 4</label>
+            <input id="p4" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="primary" id="generate">Generar parejas</button>
+          <button id="download">Descargar cancha</button>
+          <button id="swap">Intercambiar 2↔3</button>
+          <button id="reset">Reset (olvidar último)</button>
+        </div>
+
+        <div id="message" class="muted" aria-live="polite"></div>
+      </div>
+
+      <div class="card">
+        <div class="result"><strong>Próximo partido</strong></div>
+        <div class="teams" id="output">
+          <div class="team">—</div>
+          <div class="team">—</div>
+        </div>
+        <div class="muted" id="last"></div>
+      </div>
+
+      <div class="card">
+        <div class="result"><strong>Cancha</strong></div>
+        <div class="muted">Izquierda: Revés arriba / Drive abajo · Derecha: Drive arriba / Revés abajo</div>
+        <div class="court-wrap">
+          <div class="court" role="img" aria-label="Cancha de pádel con los jugadores ubicados">
+            <div class="court-lines">
+              <div class="line net"></div>
+              <div class="line service top"></div>
+              <div class="line service bottom"></div>
+              <div class="line center-service left"></div>
+              <div class="line center-service right"></div>
+            </div>
+
+            <div class="player pos-left-top" id="court-tl">
+              <img class="avatar-img" alt="" /><span class="name">—</span><span class="side">(Revés)</span>
+            </div>
+            <div class="player pos-left-bottom" id="court-tr">
+              <img class="avatar-img" alt="" /><span class="name">—</span><span class="side">(Drive)</span>
+            </div>
+            <div class="player pos-right-top" id="court-bl">
+              <img class="avatar-img" alt="" /><span class="name">—</span><span class="side">(Drive)</span>
+            </div>
+            <div class="player pos-right-bottom" id="court-br">
+              <img class="avatar-img" alt="" /><span class="name">—</span><span class="side">(Revés)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="muted">
+        Nota: Con 4 jugadores hay 3 formas de armar parejas. Si además consideras quién va de Drive/Revés en cada pareja,
+        hay 12 combinaciones distintas (las 3 parejas × 2 posiciones × 2 posiciones). Esta app intenta recorrerlas antes de repetir.
+      </p>
+    </div>
+
+    <script src="./main.js" defer></script>
+  </body>
+</html>
